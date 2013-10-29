@@ -1,0 +1,94 @@
+#
+# A theme based on wedisagree.
+#
+# Authors:
+#   Steve Jabour <steve@jabour.me>
+#
+# Screenshots:
+#   todo
+#
+
+# Load dependencies.
+pmodload 'helper'
+
+function prompt_jabour_host {
+  sw_vers="$(which sw_vers)"
+
+  if [ -x $sw_vers ]; then
+   host="$($sw_vers -productName), $(hostname -s)"
+  else
+   host="$(uname), $(uname -n)"
+  fi
+
+  echo "%F{yellow}$host%f"
+}
+
+function prompt_jabour_monarchy {
+  if [ ! -z "$(groups | awk '/root/')" ]; then
+    actor="♔ "
+  elif [ ! -z "$(groups | awk '/(sudo|admin)/')" ]; then
+    actor="♘ "
+  else
+    actor="♙ "
+  fi
+
+  echo "%F{white}$actor%f %F{magenta}$USER%f"
+}
+
+function prompt_jabour_precmd {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+
+  # Get Git repository information.
+  if (( $+functions[git-info] )); then
+    git-info
+  fi
+}
+
+function prompt_jabour_setup {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+  prompt_opts=(cr percent subst)
+
+  # Load required functions.
+  autoload -Uz add-zsh-hook
+
+  # Add hook for calling git-info before each command.
+  add-zsh-hook precmd prompt_jabour_precmd
+
+  # Set editor-info parameters.
+  zstyle ':prezto:module:editor:info:completing' format '%B%F{red}...%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary' format '%F{white}⨁%f '
+  zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{red}♺%f'
+  zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{green}❮%F{yellow}❮%F{red}❮%f%b'
+
+  # Set git-info parameters.
+  zstyle ':prezto:module:git:info' verbose 'yes'
+
+  # Set git-info, main contexts parameters.
+  zstyle ':prezto:module:git:info:ahead' format ' %B%F{yellow}⬆%f%b'
+  zstyle ':prezto:module:git:info:behind' format ' %B%F{yellow}⬇%f%b'
+  zstyle ':prezto:module:git:info:branch' format '%B%F{magenta}☁%f%%b  %B%F{red}%b%f%%b'
+
+  # Set git-info, concise contexts parameters.
+  zstyle ':prezto:module:git:info:clean' format ' %B%F{green}☀%f%b'
+  zstyle ':prezto:module:git:info:dirty' format ' %B%F{yellow}☂%f%b'
+
+  # Set git-info, verbose contexts parameters.
+  zstyle ':prezto:module:git:info:added' format ' %B%F{cyan}✚%f%b'
+  zstyle ':prezto:module:git:info:deleted' format ' %B%F{red}✖%f%b'
+  zstyle ':prezto:module:git:info:modified' format ' %B%F{yellow}⚡%f%b'
+  zstyle ':prezto:module:git:info:renamed' format ' %B%F{blue}➜%f%b'
+  zstyle ':prezto:module:git:info:unmerged' format ' %B%F{magenta}☲%f%b'
+  zstyle ':prezto:module:git:info:untracked' format ' %B%F{cyan}✭%f%b'
+
+  # Set git-info, prompts parameters.
+  zstyle ':prezto:module:git:info:keys' format 'rprompt' '%b%C%D%A%B%S%a%d%m%r%U%u'
+
+  # Define prompts.
+  PROMPT='${editor_info[keymap]} ${$(prompt_jabour_host)} ${$(prompt_jabour_monarchy)} %F{yellow}»%f %F{magenta}[%c]%f '
+  RPROMPT='${git_info[rprompt]}'
+  SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
+}
+
+prompt_jabour_setup "$@"
