@@ -1,0 +1,95 @@
+function host-info {
+  setopt LOCAL_OPTIONS
+
+  local host
+  local host_format
+  local host_formatted
+
+  local local_terminal=0
+  local local_terminal_format
+  local local_terminal_formatted
+
+  local os
+  local os_format
+  local os_formatted
+
+  local permissions
+  local permissions_format
+  local permissions_formatted
+
+  local remote_terminal=0
+  local remote_terminal_format
+  local remote_terminal_formatted
+
+  local user
+  local user_format
+  local user_formatted
+
+  local -A host_info_formats
+  local host_info_format
+
+  unset host_info
+  typeset -gA host_info
+
+  # Format host.
+  host="$(hostname -s)"
+
+  zstyle -s ':prezto:module:host:info:host' format 'host_format'
+  if [[ -n "$host" && -n "$host_format" ]]; then
+    zformat -f host_formatted "$host_format" "h:$host"
+  fi
+
+  # Format local terminal.
+  # zstyle -s ':prezto:module:host:info:local_connection' format 'local_terminal_format'
+  # if [[ -n "$local_terminal_format" ]]; then
+  #   if [[ -n "$SSH_CLIENT" && -n "$SSH_CONNECTION" && -n "$SSH_TTY" ]]; then
+  #     $local_terminal=1
+  #     zformat -f local_terminal_formatted "$local_terminal_format" "l:$local_terminal"
+  #   fi
+  # fi
+
+  # Format os.
+  if [[ -x $(which sw_vers) ]]; then
+    os="${$(sw_vers -productName)}"
+  else
+    os="${$(uname)}"
+  fi
+
+  zstyle -s ':prezto:module:host:info:os' format 'os_format'
+  if [[ -n "$os" && -n "$os_format" ]]; then
+    zformat -f os_formatted "$os_format" "o:$os"
+  fi
+
+  # Format remote terminal.
+  zstyle -s ':prezto:module:host:info:remote_connection' format 'remote_terminal_format'
+  if [[ -n "$remote_terminal_format" ]]; then
+    if [[ -n "$SSH_CLIENT" || -n "$SSH_CONNECTION" || -n "$SSH_TTY" ]]; then
+      $remote_terminal=1
+      zformat -f local_terminal_formatted "$remote_terminal_format" "r:$remote_terminal"
+    fi
+  fi
+
+  # Format user.
+  user="$(id -un)"
+  zstyle -s ':prezto:module:host:info:user' format 'user_format'
+  if [[ -n "$user" && -n "$user_format" ]]; then
+    zformat -f user_formatted "$user_format" "u:$user"
+  fi
+
+  # Format info.
+  zstyle -a ':prezto:module:host:info:keys' format 'host_info_formats'
+  for host_info_format in ${(k)host_info_formats}; do
+    zformat -f REPLY "$host_info_formats[$host_info_format]" \
+      "h:$host_formatted" \
+      "l:$local_terminal_formatted" \
+      "o:$os_formatted" \
+      "u:$user_formatted"
+    host_info[$host_info_format]="$REPLY"
+  done
+
+  unset REPLY
+
+  return 0
+}
+
+host-info "$@"

@@ -11,7 +11,7 @@
 # Load dependencies.
 pmodload 'helper'
 
-function prompt_jabour_host {
+function prompt_atsjj_host {
   sw_vers="$(which sw_vers)"
 
   if [ -x $sw_vers ]; then
@@ -23,7 +23,7 @@ function prompt_jabour_host {
   echo "%F{yellow}$host%f"
 }
 
-function prompt_jabour_monarchy {
+function prompt_atsjj_monarchy {
   if [ ! -z "$(groups | awk '/root/')" ]; then
     actor="♔ "
   elif [ ! -z "$(groups | awk '/(sudo|admin)/')" ]; then
@@ -35,7 +35,7 @@ function prompt_jabour_monarchy {
   echo "%F{white}$actor%f %F{magenta}$USER%f"
 }
 
-function prompt_jabour_precmd {
+function prompt_atsjj_precmd {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
 
@@ -43,9 +43,14 @@ function prompt_jabour_precmd {
   if (( $+functions[git-info] )); then
     git-info
   fi
+
+  # Get Host information.
+  if (( $+functions[host-info] )); then
+    host-info
+  fi
 }
 
-function prompt_jabour_setup {
+function prompt_atsjj_setup {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
   prompt_opts=(cr percent subst)
@@ -54,13 +59,20 @@ function prompt_jabour_setup {
   autoload -Uz add-zsh-hook
 
   # Add hook for calling git-info before each command.
-  add-zsh-hook precmd prompt_jabour_precmd
+  add-zsh-hook precmd prompt_atsjj_precmd
 
   # Set editor-info parameters.
   zstyle ':prezto:module:editor:info:completing' format '%B%F{red}...%f%b'
   zstyle ':prezto:module:editor:info:keymap:primary' format '%F{white}⨁%f '
   zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{red}♺%f'
   zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{green}❮%F{yellow}❮%F{red}❮%f%b'
+
+  zstyle ':prezto:module:host:info:host' format '%B%F{yellow}%h%f%b'
+  zstyle ':prezto:module:host:info:os' format '%B%F{yellow}%o%f%b'
+  zstyle ':prezto:module:host:info:local_connection' format '%B%F{white}⨁%f%b'
+  zstyle ':prezto:module:host:info:remote_connection' format '%B%F{red}⨀%f%b'
+  zstyle ':prezto:module:host:info:user' format '%B%F{magenta}%u%f%b'
+  zstyle ':prezto:module:host:info:keys' format 'rprompt' '%l%r %o, %h %p %u'
 
   # Set git-info parameters.
   zstyle ':prezto:module:git:info' verbose 'yes'
@@ -86,9 +98,10 @@ function prompt_jabour_setup {
   zstyle ':prezto:module:git:info:keys' format 'rprompt' '%b%C%D%A%B%S%a%d%m%r%U%u'
 
   # Define prompts.
-  PROMPT='${editor_info[keymap]} ${$(prompt_jabour_host)} ${$(prompt_jabour_monarchy)} %F{yellow}»%f %F{magenta}[%c]%f '
+  PROMPT='${editor_info[keymap]} ${$(prompt_atsjj_host)} ${$(prompt_atsjj_monarchy)} %F{yellow}»%f %F{magenta}[%c]%f '
+  # RPROMPT='${host_info[rprompt]} | ${git_info[rprompt]}'
   RPROMPT='${git_info[rprompt]}'
   SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
 }
 
-prompt_jabour_setup "$@"
+prompt_atsjj_setup "$@"
